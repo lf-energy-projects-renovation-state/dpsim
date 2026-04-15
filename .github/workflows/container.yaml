@@ -5,7 +5,7 @@ on: workflow_dispatch
 
 jobs:
   create-docker-rocky:
-    runs-on: ubuntu-latest
+    runs-on: sogno-platform-dpsim-runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
 
   create-docker-fedora-release:
     needs: create-docker-fedora-dev
-    runs-on: ubuntu-latest
+    runs-on: sogno-platform-dpsim-runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
          tags: sogno/dpsim:latest
 
   create-docker-fedora-dev:
-    runs-on: ubuntu-latest
+    runs-on: sogno-platform-dpsim-runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,7 +66,7 @@ jobs:
          tags: sogno/dpsim:dev
 
   create-docker-fedora-minimal-dev:
-    runs-on: ubuntu-latest
+    runs-on: sogno-platform-dpsim-runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -86,7 +86,7 @@ jobs:
          tags: sogno/dpsim:dev-minimal
 
   create-docker-manylinux:
-    runs-on: ubuntu-latest
+    runs-on: sogno-platform-dpsim-runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -107,7 +107,7 @@ jobs:
 
   create-docker-binder:
     needs: create-docker-fedora-dev
-    runs-on: ubuntu-latest
+    runs-on: sogno-platform-dpsim-runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
