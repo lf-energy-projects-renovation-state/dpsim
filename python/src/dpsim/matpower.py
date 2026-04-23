@@ -176,9 +176,10 @@ class Reader:
                 gen_name = "gen%s" % generator
 
                 # Relevant data from self.mpc_gen_data. Identification with bus number available in mpc_bus_data and mpc_gen_data
+                # Only one generator per bus is supported. If there are more, the first is selected and the rest is ignored.
                 gen = self.mpc_gen_data.loc[
                     self.mpc_gen_data["bus"] == self.mpc_bus_data.at[index, "bus_i"]
-                ]
+                ].iloc[0]
 
                 gen_baseS = (
                     gen["mBase"] * mw_w
@@ -216,9 +217,10 @@ class Reader:
                 extnet_name = "extnet%s" % inj
 
                 # Relevant data from self.mpc_gen_data. Identification with bus number available in mpc_bus_data and mpc_gen_data
+                # Only one generator/injection per bus is supported. If there are more, the first is selected and the rest is ignored.
                 extnet = self.mpc_gen_data.loc[
                     self.mpc_gen_data["bus"] == self.mpc_bus_data.at[index, "bus_i"]
-                ]
+                ].iloc[0]
 
                 # extnet_baseS = extnet['mBase']*mw_w # Default is mpc.baseMVA
                 extnet_baseV = self.mpc_bus_data.at[index, "baseKV"] * kv_v
