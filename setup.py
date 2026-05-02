@@ -9,7 +9,7 @@ from setuptools.command.build_ext import build_ext
 
 class CMakeExtension(Extension):
     def __init__(self, name):
-        Extension.__init__(self, name, sources=[])
+        super().__init__(name, sources=[])
 
 
 class CMakeBuild(build_ext):
@@ -24,14 +24,19 @@ class CMakeBuild(build_ext):
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG={extdir}",
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE={extdir}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
-            f"-DCMAKE_BUILD_TYPE={cfg}",  # Not used on MSVC, but no harm
+            f"-DCMAKE_BUILD_TYPE={cfg}",
             "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
         ]
 
         if platform.system() == "Windows":
             cmake_args += ["-A", "x64"]
-            build_args = ["--", "/m"]
+            targets = ["dpsimpy"]
+            if self.parallel:
+                build_args = ["--config", cfg, "--parallel", str(self.parallel)]
+            else:
+                build_args = ["--config", cfg, "--parallel", "4"]
         else:
+            targets = ["dpsimpy", "dpsimpyvillas"]
             if self.parallel:
                 build_args = ["--", "-j" + str(self.parallel)]
             else:
@@ -42,26 +47,27 @@ class CMakeBuild(build_ext):
 
         env = os.environ.copy()
         if env.get("CMAKE_OPTS"):
-            cmake_args += env.get("CMAKE_OPTS").split(" ")
+            cmake_args += env.get("CMAKE_OPTS").split()
 
-        # CMakeLists.txt is in the same directory as this setup.py file
         sourcedir = os.path.abspath(os.path.dirname(__file__))
         print(" ".join(["cmake", sourcedir] + cmake_args))
         subprocess.check_call(
-            ["cmake", sourcedir] + cmake_args, cwd=self.build_temp, env=env
+            ["cmake", sourcedir] + cmake_args,
+            cwd=self.build_temp,
+            env=env,
         )
 
-        print(
-            " ".join(
-                ["cmake", "--build", ".", "--target", "dpsimpy", "dpsimpyvillas"]
-                + build_args
+        for target in targets:
+            print(" ".join(["cmake", "--build", ".", "--target", target] + build_args))
+            subprocess.check_call(
+                ["cmake", "--build", ".", "--target", target] + build_args,
+                cwd=self.build_temp,
             )
-        )
-        subprocess.check_call(
-            ["cmake", "--build", ".", "--target", "dpsimpy", "dpsimpyvillas"]
-            + build_args,
-            cwd=self.build_temp,
-        )
+
+
+ext_modules_list = [CMakeExtension("dpsimpy")]
+if platform.system() != "Windows":
+    ext_modules_list.append(CMakeExtension("dpsimpyvillas"))
 
 
 setup(
@@ -75,7 +81,7 @@ setup(
     ],
     setup_requires=["pytest-runner", "wheel"],
     tests_require=["pytest", "pyyaml", "nbformat", "nbconvert"],
-    ext_modules=[CMakeExtension("dpsimpy"), CMakeExtension("dpsimpyvillas")],
+    ext_modules=ext_modules_list,
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
 )

@@ -16,19 +16,8 @@
 #include <pybind11/stl.h>
 
 #include <DPsim.h>
-#include <dpsim-models/IdentifiedObject.h>
-#include <dpsim/RealTimeSimulation.h>
-#include <dpsim/Simulation.h>
 
-#include <dpsim-models/CSVReader.h>
-
-#include <dpsim/pybind/Attributes.h>
-#include <dpsim/pybind/BaseComponents.h>
-#include <dpsim/pybind/DPComponents.h>
-#include <dpsim/pybind/EMTComponents.h>
-#include <dpsim/pybind/SPComponents.h>
-#include <dpsim/pybind/SignalComponents.h>
-#include <dpsim/pybind/Utils.h>
+#include <DPsimPy.h>
 
 PYBIND11_DECLARE_HOLDER_TYPE(T, CPS::AttributePointer<T>);
 
@@ -211,6 +200,7 @@ PYBIND11_MODULE(dpsimpy, m) {
            &DPsim::Simulation::setDirectLinearSolverConfiguration)
       .def("log_lu_times", &DPsim::Simulation::logLUTimes);
 
+#ifdef WITH_RT
   py::class_<DPsim::RealTimeSimulation, DPsim::Simulation>(m,
                                                            "RealTimeSimulation")
       .def(py::init<std::string, CPS::Logger::Level>(), "name"_a,
@@ -225,6 +215,7 @@ PYBIND11_MODULE(dpsimpy, m) {
                &DPsim::RealTimeSimulation::run))
       .def("set_solver", &DPsim::RealTimeSimulation::setSolverType)
       .def("set_domain", &DPsim::RealTimeSimulation::setDomain);
+#endif
 
   py::class_<CPS::SystemTopology, std::shared_ptr<CPS::SystemTopology>>(
       m, "SystemTopology")
@@ -322,7 +313,7 @@ PYBIND11_MODULE(dpsimpy, m) {
               const CPS::String &attr, const CPS::IdentifiedObject &comp) {
              logger.logAttribute(names, comp.attribute(attr));
            });
-
+#ifdef WITH_RT
   py::class_<DPsim::RealTimeDataLogger, DPsim::DataLoggerInterface,
              std::shared_ptr<DPsim::RealTimeDataLogger>>(m,
                                                          "RealTimeDataLogger")
@@ -376,6 +367,7 @@ PYBIND11_MODULE(dpsimpy, m) {
             logger.logAttribute(names, comp.attribute(attr));
           },
           "names"_a, "attr"_a, "comp"_a);
+#endif
 
   py::class_<CPS::IdentifiedObject, std::shared_ptr<CPS::IdentifiedObject>>(
       m, "IdentifiedObject")
